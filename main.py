@@ -40,13 +40,66 @@ def first_chose():
 def second_chose():
     clear_widgets()
 
+    selected_option = None
+    second_selected_option = None
+
     def on_select(e):
-        csNum = float(3.18)
-        forNum = float(12.6)
+        nonlocal selected_option, second_selected_option
         selected_option = combo_var.get()
         second_selected_option = combo_varSecond.get()
-        if (selected_option == "Valorant" and second_selected_option == "CS-GO"):
-            print("esa")
+
+    def keyHandler(e):
+        nonlocal selected_option, second_selected_option
+        key = (selected_option, second_selected_option)
+        if key in conversion_functions:
+            conversion_functions[key]()
+
+
+    def cs_convert():
+        cs_num = 3.18
+        sens_num = float(your_sens.get())
+        # dpi_num = int(your_dpi.get())
+        cs_sens = cs_num * sens_num
+        result.config(text=round((cs_sens), 3))
+
+    def cs_reserve_convert():
+        cs_num = 3.18
+        sens_num = float(your_sens.get())
+        cs_sens = sens_num / cs_num
+        result.config(text=round((cs_sens), 3))
+
+    def fort_convert():
+        fort_num = 12.6
+        sens_num = float(your_sens.get())
+        fort_sens = sens_num * fort_num
+        result.config(text=round((fort_sens), 3))
+
+    def fort_reserve_convert():
+        fort_num = 12.6
+        sens_num = float(your_sens.get())
+        fort_sens = sens_num / fort_num
+        result.config(text=round((fort_sens), 3))
+
+    def fort_to_cs():
+        fort_num = 3.96
+        sens_num = float(your_sens.get())
+        cs_sens = sens_num / fort_num
+        result.config(text=round((cs_sens), 3))
+
+    def cs_to_fort():
+        cs_num = 3.96
+        sens_num = float(your_sens.get())
+        fort_sens = sens_num * cs_num
+        result.config(text=round((fort_sens), 3))
+
+    conversion_functions = {
+        ("Valorant", "CS-GO"): cs_convert,
+        ("Valorant", "Fortnite"): fort_convert,
+        ("CS-GO", "Valorant"): cs_reserve_convert,
+        ("Fortnite", "Valorant"): fort_reserve_convert,
+        ("CS-GO", "Fortnite"): cs_to_fort,
+        ("Fortnite", "CS-GO"): fort_to_cs
+    }
 
     #option menu
     from_text = Label(root, text="Convert from: ", bg="grey")
@@ -68,25 +121,23 @@ def second_chose():
     sens_text = Label(root, text="Your sens", bg="grey")
     your_sens = Entry(root, width=20)
 
-    dpi_text = Label(root, text="Your DPI", bg="grey")
-    your_dpi = Entry(root, width=20)
+    # dpi_text = Label(root, text="Your DPI", bg="grey")
+    # your_dpi = Entry(root, width=20)
+
+    # change_sensText = Label(root, text="To sens", bg="grey")
+    # change_sens = Entry(root, width=20)
 
     sens_text.pack()
     your_sens.pack()
-    dpi_text.pack()
-    your_dpi.pack()
+    # dpi_text.pack()
+    # your_dpi.pack()
 
-    def cs_convert():
-        sens_num = float(your_sens.get())
-        dpi_num = int(your_dpi.get())
-        result.config(text=(round(sens_num * dpi_num)))
+    root.bind('<KeyRelease>', keyHandler)
 
     result = Label(root, text="", bg="grey")
     result.pack()
-
-    conv_result = Button(root, text="Convert", command=cs_convert)
-    conv_result.pack()
-
+    reset_button = Button(root, text="Go back", command=reset)
+    reset_button.pack()
 def reset():
     clear_widgets()
     first_button = Button(root, text="eDPI Calculator", command=first_chose)
@@ -103,7 +154,5 @@ first_button.pack()
 
 second_button = Button(root, text="Convert your sens", command=second_chose)
 second_button.pack()
-
-
 
 root.mainloop()
