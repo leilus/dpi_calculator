@@ -10,24 +10,27 @@ label = Label(root, text="E-DPI Calculator", font="30", fg="white", bg="gray")
 label.pack(padx=5, pady=5)
 
 current_function = None
+total_sens = 0
+
+
 def first_chose():
     clear_widgets()
-    val_text = Label(root, text="Your valorant sens", font=20, bg="gray")
-    val_text.pack(padx=5, pady=5)
-    val_sens = Entry(root, width=20)
-    val_sens.pack(padx=5, pady=5)
 
-    dpi_text = Label(root, text="Your dpi", font=20, bg="gray")
+    dpi_text = Label(root, text="Your DPI", font=20, bg="gray")
     dpi_text.pack(padx=5, pady=5)
     your_dpi = Entry(root, width=20)
     your_dpi.pack(padx=5, pady=5)
 
-    root.bind('<KeyRelease>', lambda event=None: calculate(val_sens, your_dpi))
+    val_text = Label(root, text="Your Valorant sens", font=20, bg="gray")
+    val_text.pack(padx=5, pady=5)
+    val_sens = Entry(root, width=20)
+    val_sens.pack(padx=5, pady=5)
 
     text = Label(root, text="Your eDPI: ", font=18, bg="gray")
     text.pack()
     result = Label(root, text="", font=20, bg="gray")
     result.pack()
+
     reset_button = Button(root, text="Go back", command=reset)
     reset_button.pack()
 
@@ -38,8 +41,8 @@ def first_chose():
 
 
 def second_chose():
+    global total_sens
     clear_widgets()
-
     selected_option = None
     second_selected_option = None
 
@@ -49,48 +52,44 @@ def second_chose():
         second_selected_option = combo_varSecond.get()
 
     def keyHandler(e):
-        nonlocal selected_option, second_selected_option
-        key = (selected_option, second_selected_option)
-        if key in conversion_functions:
-            conversion_functions[key]()
+        if selected_option == second_selected_option:
+            total_sens_conv = same_option()
+        elif selected_option and second_selected_option:
+            total_sens_conv = conversion_functions.get((selected_option, second_selected_option), lambda: 1)()
+        result.config(text=total_sens_conv)
 
-
+    def same_option():
+        sens_num = float(your_sens.get())
+        return round((sens_num), 3)
     def cs_convert():
         cs_num = 3.18
         sens_num = float(your_sens.get())
-        # dpi_num = int(your_dpi.get())
-        cs_sens = cs_num * sens_num
-        result.config(text=round((cs_sens), 3))
+        return round((cs_num * sens_num), 3)
 
     def cs_reserve_convert():
         cs_num = 3.18
         sens_num = float(your_sens.get())
-        cs_sens = sens_num / cs_num
-        result.config(text=round((cs_sens), 3))
+        return round((sens_num / cs_num), 3)
 
     def fort_convert():
         fort_num = 12.6
         sens_num = float(your_sens.get())
-        fort_sens = sens_num * fort_num
-        result.config(text=round((fort_sens), 3))
+        return round((sens_num * fort_num), 3)
 
     def fort_reserve_convert():
         fort_num = 12.6
         sens_num = float(your_sens.get())
-        fort_sens = sens_num / fort_num
-        result.config(text=round((fort_sens), 3))
+        return round((sens_num / fort_num), 3)
 
     def fort_to_cs():
         fort_num = 3.96
         sens_num = float(your_sens.get())
-        cs_sens = sens_num / fort_num
-        result.config(text=round((cs_sens), 3))
+        return round((sens_num / fort_num), 3)
 
     def cs_to_fort():
         cs_num = 3.96
         sens_num = float(your_sens.get())
-        fort_sens = sens_num * cs_num
-        result.config(text=round((fort_sens), 3))
+        return round((sens_num * cs_num), 3)
 
     conversion_functions = {
         ("Valorant", "CS-GO"): cs_convert,
@@ -101,7 +100,6 @@ def second_chose():
         ("Fortnite", "CS-GO"): fort_to_cs
     }
 
-    #option menu
     from_text = Label(root, text="Convert from: ", bg="grey")
     combo_var = tk.StringVar()
     combo = ttk.Combobox(root, textvariable=combo_var)
@@ -118,26 +116,56 @@ def second_chose():
 
     combo.bind('<<ComboboxSelected>>', on_select)
     comboSecond.bind('<<ComboboxSelected>>', on_select)
+
     sens_text = Label(root, text="Your sens", bg="grey")
     your_sens = Entry(root, width=20)
 
-    # dpi_text = Label(root, text="Your DPI", bg="grey")
-    # your_dpi = Entry(root, width=20)
-
-    # change_sensText = Label(root, text="To sens", bg="grey")
-    # change_sens = Entry(root, width=20)
-
     sens_text.pack()
     your_sens.pack()
-    # dpi_text.pack()
-    # your_dpi.pack()
 
     root.bind('<KeyRelease>', keyHandler)
 
-    result = Label(root, text="", bg="grey")
-    result.pack()
+    def dpi_show():
+        if checkbox_var.get():
+            first_label.pack()
+            first_entry.pack()
+            second_label.pack()
+            second_entry.pack()
+            button.pack(padx=10, pady=10)
+        else:
+            first_label.pack_forget()
+            first_entry.pack_forget()
+            second_label.pack_forget()
+            second_entry.pack_forget()
+            button.pack_forget()
+
+    def compare_dpi():
+        entry_dpi = int(first_entry.get())
+        second_entry_dpi = int(second_entry.get())
+        if selected_option and second_selected_option:
+            total_sens_conv = conversion_functions.get((selected_option, second_selected_option), lambda: 1)()
+            total_dpi = round(((entry_dpi / second_entry_dpi) * total_sens_conv), 3)
+            result.config(text=total_dpi)
+
+    checkbox_var = BooleanVar()
+    checkbox = Checkbutton(root, text="Change DPI", bg="gray", variable=checkbox_var, onvalue=1, offvalue=0,
+                           command=dpi_show)
+    checkbox.pack(padx=10, pady=10)
+
+    first_label = Label(root, text="Your DPI", bg="gray")
+    second_label = Label(root, text="DPI to Convert", bg="gray")
+    first_entry = Entry(root, width=20)
+    second_entry = Entry(root, width=20)
+
     reset_button = Button(root, text="Go back", command=reset)
-    reset_button.pack()
+    reset_button.pack(side="bottom")
+
+    button = Button(root, text="compare", command=compare_dpi)
+
+    result = Label(root, text="", bg="grey", font=20)
+    result.pack(side="bottom", padx=20, pady=20)
+
+
 def reset():
     clear_widgets()
     first_button = Button(root, text="eDPI Calculator", command=first_chose)
@@ -145,9 +173,12 @@ def reset():
 
     second_button = Button(root, text="Convert your sens", command=second_chose)
     second_button.pack()
+
+
 def clear_widgets():
     for widget in root.winfo_children():
         widget.destroy()
+
 
 first_button = Button(root, text="eDPI Calculator", command=first_chose)
 first_button.pack()
